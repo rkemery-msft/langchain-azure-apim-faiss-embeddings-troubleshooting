@@ -67,6 +67,8 @@ The policy should include `/openai` in the backend URL:
 
 APIM tracing shows you exactly what's being sent to the backend.
 
+> **Note:** Tracing must be enabled for the subscription. If you see `Ocp-Apim-Trace-AuthorizationExpired`, enable tracing in the Azure Portal under API Management → Subscriptions → [Your Subscription] → Enable tracing (checkbox).
+
 #### Test with Tracing Enabled
 ```bash
 curl -v -X POST "https://your-apim-gateway.azure-api.net/openai/deployments/text-embedding-3-large/embeddings?api-version=2024-12-01-preview" \
@@ -82,6 +84,8 @@ Look for the `Ocp-Apim-Trace-Location` header in the response, then fetch the tr
 ```bash
 curl -s "TRACE_URL_FROM_HEADER"
 ```
+
+**Alternative:** If tracing authorization has expired, you can still diagnose by checking the HTTP status code and response body without the detailed trace.
 
 **What to Check in Trace:**
 ```json
@@ -408,8 +412,8 @@ Check APIM rate limit policy:
 # Get APIM gateway URL
 az apim show --resource-group {rg} --name {apim-name} --query gatewayUrl -o tsv
 
-# Get subscription key
-az rest --method get \
+# Get subscription key (note: uses POST method for listSecrets)
+az rest --method post \
   --uri "https://management.azure.com/subscriptions/{sub-id}/resourceGroups/{rg}/providers/Microsoft.ApiManagement/service/{apim}/subscriptions/default-subscription/listSecrets?api-version=2024-05-01" \
   --query primaryKey -o tsv
 
